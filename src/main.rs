@@ -68,8 +68,7 @@ fn gitea_callback(
         .limit(1)
         .load::<models::User>(&*conn)
     {
-        Ok(u) => u[0].clone(),
-        Err(why) => {
+        Ok(u) => if u.len() == 0 {
             let u = models::User {
                 id: uuid::Uuid::new_v4(),
                 salutation: gitea_user.full_name,
@@ -79,7 +78,7 @@ fn gitea_callback(
                 tier: 0,
             };
 
-            diesel::insert_into(users_table)
+            let u: models::User = diesel::insert_into(users_table)
                 .values(&u)
                 .get_result(&*conn)
                 .expect("able to insert user");
@@ -91,12 +90,19 @@ fn gitea_callback(
                 refresh_token: refresh,
             };
 
-            diesel::insert_into(gitea_tokens::table)
+            let _: models::GiteaToken = diesel::insert_into(gitea_tokens::table)
                 .values(&tok)
                 .get_result(&*conn)
                 .expect("able to insert token");
 
             u
+        } else {
+            tracing::info!("{} {:?} logged in", u[0].id, u[0].salutation);
+            u[0].clone()
+        },
+        Err(why) => {
+            tracing::error!("error reading from database: {}", why);
+            todo!("error response")
         }
     };
 

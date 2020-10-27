@@ -1,7 +1,7 @@
 table! {
     gitea_tokens (id) {
         id -> Uuid,
-        user_id -> Nullable<Uuid>,
+        user_id -> Uuid,
         access_token -> Varchar,
         refresh_token -> Varchar,
     }
