@@ -54,17 +54,49 @@ fn gitea_callback(
     let tok = token.access_token().to_string();
     let refresh = token.refresh_token().unwrap().to_string();
 
-    let gitea_user = gitea::user(tok.clone()).exepct("gitea api call to work");
+    let gitea_user = gitea::user(tok.clone()).expect("gitea api call to work");
 
-    use schema::users::dsl::{users, email};
-    let user: models::User = match users.filter(email.eq(gitea_user.email)).limit(1).load::<models::User>(&conn) {
-        Ok(u) => u,
+    use schema::{
+        gitea_tokens,
+        users::{
+            dsl::{email, users},
+            table as users_table,
+        },
+    };
+    let user: models::User = match users
+        .filter(email.eq(gitea_user.email.clone()))
+        .limit(1)
+        .load::<models::User>(&*conn)
+    {
+        Ok(u) => u[0].clone(),
         Err(why) => {
             let u = models::User {
+                id: uuid::Uuid::new_v4(),
                 salutation: gitea_user.full_name,
                 email: gitea_user.email,
                 is_admin: gitea_user.is_admin,
-            }
+                is_locked: false,
+                tier: 0,
+            };
+
+            diesel::insert_into(users_table)
+                .values(&u)
+                .get_result(&*conn)
+                .expect("able to insert user");
+
+            let tok = models::GiteaToken {
+                id: uuid::Uuid::new_v4(),
+                user_id: u.id.clone(),
+                access_token: tok,
+                refresh_token: refresh,
+            };
+
+            diesel::insert_into(gitea_tokens::table)
+                .values(&tok)
+                .get_result(&*conn)
+                .expect("able to insert token");
+
+            u
         }
     };
 
