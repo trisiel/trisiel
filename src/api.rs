@@ -20,13 +20,13 @@ pub fn get_user(user: models::User, uuid: Uuid) -> Result<Json<models::User>> {
     Ok(Json(user))
 }
 
-#[tracing::instrument]
+#[instrument]
 #[get("/whoami")]
 pub fn whoami(user: models::User) -> Json<models::User> {
     Json(user)
 }
 
-#[tracing::instrument(skip(conn))]
+#[instrument(skip(conn))]
 #[get("/token")]
 pub fn get_tokens(user: models::User, conn: MainDatabase) -> Result<Json<Vec<models::Token>>> {
     use schema::tokens::dsl::*;
@@ -39,14 +39,16 @@ pub fn get_tokens(user: models::User, conn: MainDatabase) -> Result<Json<Vec<mod
     ))
 }
 
-#[tracing::instrument(skip(conn))]
+#[instrument(skip(conn))]
 #[delete("/token/<uuid>")]
 pub fn delete_token(user: models::User, conn: MainDatabase, uuid: Uuid) -> Result {
     use schema::tokens::dsl::*;
     let uuid = uuid.into_inner();
 
-    let tok: models::Token = tokens.find(uuid.clone())
-        .get_result(&*conn).map_err(Error::Database)?;
+    let tok: models::Token = tokens
+        .find(uuid.clone())
+        .get_result(&*conn)
+        .map_err(Error::Database)?;
 
     if tok.user_id != user.id && !user.is_admin {
         return Err(Error::LackPermissions);
@@ -57,6 +59,20 @@ pub fn delete_token(user: models::User, conn: MainDatabase, uuid: Uuid) -> Resul
         .get_result::<models::Token>(&*conn)?;
 
     Ok(())
+}
+
+#[instrument(skip(conn))]
+#[post("/token")]
+pub fn create_token(user: models::User, conn: MainDatabase) -> Result<String> {
+    use schema::tokens;
+
+    let tok: models::Token = diesel::insert_into(tokens::table)
+        .values(&models::NewToken {
+            user_id: user.id.clone(),
+        })
+        .get_result(&*conn).map_err(Error::Database)?;
+
+    Ok(jwt::make(user.id, tok.id)?)
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -70,8 +86,11 @@ pub enum Error {
     #[error("you lack needed permissions")]
     LackPermissions,
 
-    #[error("internal server error")]
+    #[error("internal server error: {0}")]
     InternalServerError(#[from] Report),
+
+    #[error("external dependency failed: {0}")]
+    ExternalDependencyFailed(Report),
 }
 
 impl<'a> Responder<'a> for Error {
@@ -87,11 +106,13 @@ impl<'a> Responder<'a> for Error {
                 .status(Status::Unauthorized)
                 .sized_body(Cursor::new(format!("{}", self)))
                 .ok(),
-            Error::InternalServerError(why) => Response::build()
-                .header(ContentType::Plain)
-                .status(Status::InternalServerError)
-                .sized_body(Cursor::new(format!("{}", why)))
-                .ok(),
+            Error::InternalServerError(why) | Error::ExternalDependencyFailed(why) => {
+                Response::build()
+                    .header(ContentType::Plain)
+                    .status(Status::InternalServerError)
+                    .sized_body(Cursor::new(format!("{}", why)))
+                    .ok()
+            }
         }
     }
 }

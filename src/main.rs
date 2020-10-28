@@ -6,6 +6,8 @@ extern crate diesel;
 extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
+#[macro_use]
+extern crate tracing;
 
 use color_eyre::eyre::Result;
 use diesel::pg::PgConnection;
@@ -28,23 +30,24 @@ pub struct MainDatabase(PgConnection);
 
 pub struct Gitea;
 
-#[tracing::instrument(skip(oauth2, cookies))]
+#[instrument(skip(oauth2, cookies))]
 #[get("/login/gitea")]
 fn gitea_login(oauth2: OAuth2<Gitea>, mut cookies: Cookies<'_>) -> Redirect {
     oauth2.get_redirect(&mut cookies, &[""]).unwrap()
 }
 
-#[tracing::instrument(skip(conn, token, cookies))]
+#[instrument(skip(conn, token, cookies))]
 #[get("/auth/gitea")]
 fn gitea_callback(
     conn: MainDatabase,
     token: TokenResponse<Gitea>,
     mut cookies: Cookies<'_>,
-) -> String {
+) -> api::Result<String> {
     let tok = token.access_token().to_string();
     let refresh = token.refresh_token().unwrap().to_string();
 
-    let gitea_user = gitea::user(tok.clone()).expect("gitea api call to work");
+    let gitea_user =
+        gitea::user(tok.clone()).map_err(|why| api::Error::ExternalDependencyFailed(why.into()))?;
 
     use schema::{
         gitea_tokens, tokens,
@@ -53,47 +56,43 @@ fn gitea_callback(
             table as users_table,
         },
     };
-    let user: models::User = match users
+    let u: Vec<models::User> = users
         .filter(email.eq(gitea_user.email.clone()))
         .limit(1)
         .load::<models::User>(&*conn)
-    {
-        Ok(u) => {
-            if u.len() == 0 {
-                let u = models::NewUser {
-                    salutation: gitea_user.full_name,
-                    email: gitea_user.email,
-                    is_admin: gitea_user.is_admin,
-                    is_locked: false,
-                    tier: 0,
-                };
+        .map_err(api::Error::Database)?;
 
-                let u: models::User = diesel::insert_into(users_table)
-                    .values(&u)
-                    .get_result(&*conn)
-                    .expect("able to insert user");
+    let user = if u.len() == 0 {
+        let u = models::NewUser {
+            salutation: gitea_user.full_name,
+            email: gitea_user.email,
+            is_admin: gitea_user.is_admin,
+            is_locked: false,
+            tier: 0,
+        };
 
-                let tok = models::NewGiteaToken {
-                    user_id: u.id.clone(),
-                    access_token: tok,
-                    refresh_token: refresh,
-                };
+        let u: models::User = diesel::insert_into(users_table)
+            .values(&u)
+            .get_result(&*conn)
+            .map_err(api::Error::Database)?;
 
-                let _: models::GiteaToken = diesel::insert_into(gitea_tokens::table)
-                    .values(&tok)
-                    .get_result(&*conn)
-                    .expect("able to insert token");
+        let tok = models::NewGiteaToken {
+            user_id: u.id.clone(),
+            access_token: tok,
+            refresh_token: refresh,
+        };
 
-                u
-            } else {
-                tracing::info!("{} {:?} logged in", u[0].id, u[0].salutation);
-                u[0].clone()
-            }
-        }
-        Err(why) => {
-            tracing::error!("error reading from database: {}", why);
-            todo!("error response")
-        }
+        let _: models::GiteaToken = diesel::insert_into(gitea_tokens::table)
+            .values(&tok)
+            .get_result(&*conn)
+            .map_err(api::Error::Database)?;
+
+        info!("new account created for {:?}", u);
+
+        u
+    } else {
+        info!("{} {:?} logged in", u[0].id, u[0].salutation);
+        u[0].clone()
     };
 
     let tok: models::Token = diesel::insert_into(tokens::table)
@@ -102,23 +101,25 @@ fn gitea_callback(
         })
         .get_result(&*conn)
         .expect("create token information");
-    tracing::info!("created new token for {} with id {}", user.id, tok.id);
+    info!("created new token for {} with id {}", user.id, tok.id);
 
     let tok = jwt::make(user.id, tok.id).expect("to sign JWT");
-    // Set a private cookie with the access token
+
     cookies.add_private(
         Cookie::build("token", tok.clone())
             .same_site(SameSite::Lax)
             .finish(),
     );
 
-    tok
+    Ok(tok)
 }
 
 fn main() -> Result<()> {
     color_eyre::install()?;
     tracing_subscriber::fmt::init();
 
+    // XXX(Xe): This looks ineffectual, however it forces jwt::SECRET to be
+    // evaluated and will kill the program if JWT_SECRET is not found.
     let _ = *jwt::SECRET;
 
     rocket::ignite()
@@ -131,7 +132,8 @@ fn main() -> Result<()> {
                 api::whoami,
                 api::get_user,
                 api::get_tokens,
-                api::delete_token
+                api::delete_token,
+                api::create_token,
             ],
         )
         .mount("/", routes![gitea_login, gitea_callback])
