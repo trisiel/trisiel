@@ -1,20 +1,19 @@
-use crate::{MainDatabase, models, schema};
+use crate::{models, schema, MainDatabase};
 
 use color_eyre::eyre::{eyre, Result};
 use diesel::prelude::*;
+use hmac::{Hmac, NewMac};
 use jwt::{SignWithKey, VerifyWithKey};
 use lazy_static::lazy_static;
-use std::env;
-use hmac::{Hmac, NewMac};
 use sha2::Sha256;
 use std::collections::BTreeMap;
+use std::env;
 
 lazy_static! {
     pub static ref SECRET: String = env::var("JWT_SECRET")
         .expect("JWT_SECRET to be populated")
         .to_string();
 }
-
 
 #[tracing::instrument]
 pub fn make(user_id: uuid::Uuid, token_id: uuid::Uuid) -> Result<String> {

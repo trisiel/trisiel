@@ -1,4 +1,4 @@
-use crate::schema::{gitea_tokens, users, tokens};
+use crate::schema::{gitea_tokens, tokens, users};
 use chrono::NaiveDateTime;
 use serde::Serialize;
 use uuid::Uuid;
@@ -26,7 +26,7 @@ pub struct User {
 }
 
 #[derive(Insertable)]
-#[table_name="gitea_tokens"]
+#[table_name = "gitea_tokens"]
 pub struct NewGiteaToken {
     pub user_id: Uuid,
     pub access_token: String,
@@ -44,7 +44,7 @@ pub struct GiteaToken {
 }
 
 #[derive(Insertable)]
-#[table_name="tokens"]
+#[table_name = "tokens"]
 pub struct NewToken {
     pub user_id: Uuid,
 }

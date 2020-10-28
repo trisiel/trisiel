@@ -16,8 +16,7 @@ pub struct User {
 }
 
 pub fn user(token: String) -> std::io::Result<User> {
-    let resp =
-        ureq::get("https://tulpa.dev/api/v1/user")
+    let resp = ureq::get("https://tulpa.dev/api/v1/user")
         .set("Authorization", &format!("bearer {}", token))
         .call();
     if !resp.ok() {
