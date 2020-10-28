@@ -47,8 +47,8 @@ pub fn verify(token: String, conn: MainDatabase) -> Result<models::User> {
         .find(uuid::Uuid::parse_str(&jti)?)
         .get_result::<models::Token>(&*conn)?;
 
-    if tok.deleted_at.is_none() {
-        return Err(eyre!("token was deleted"));
+    if tok.deleted_at.is_some() {
+        return Err(eyre!("token was deleted at {}", tok.deleted_at.unwrap()));
     }
 
     if tok.user_id != uid {

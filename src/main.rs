@@ -119,7 +119,8 @@ fn main() -> Result<()> {
     color_eyre::install()?;
     tracing_subscriber::fmt::init();
 
-    tracing::trace!("JWT secret: {:?}", *jwt::SECRET);
+    let _ = *jwt::SECRET;
+
     rocket::ignite()
         .attach(OAuth2::<Gitea>::fairing("gitea"))
         .attach(MainDatabase::fairing())
