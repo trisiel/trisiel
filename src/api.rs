@@ -1,4 +1,5 @@
 use crate::{jwt, models, schema, MainDatabase};
+use chrono::prelude::*;
 use color_eyre::eyre::Report;
 use diesel::prelude::*;
 use rocket::http::{ContentType, Status};
@@ -17,6 +18,45 @@ pub fn get_user(user: models::User, uuid: Uuid) -> Result<Json<models::User>> {
     }
 
     Ok(Json(user))
+}
+
+#[tracing::instrument]
+#[get("/whoami")]
+pub fn whoami(user: models::User) -> Json<models::User> {
+    Json(user)
+}
+
+#[tracing::instrument(skip(conn))]
+#[get("/token")]
+pub fn get_tokens(user: models::User, conn: MainDatabase) -> Result<Json<Vec<models::Token>>> {
+    use schema::tokens::dsl::*;
+
+    Ok(Json(
+        tokens
+            .filter(user_id.eq(user.id))
+            .load::<models::Token>(&*conn)
+            .map_err(Error::Database)?,
+    ))
+}
+
+#[tracing::instrument(skip(conn))]
+#[delete("/token/<uuid>")]
+pub fn delete_token(user: models::User, conn: MainDatabase, uuid: Uuid) -> Result {
+    use schema::tokens::dsl::*;
+    let uuid = uuid.into_inner();
+
+    let tok: models::Token = tokens.find(uuid.clone())
+        .get_result(&*conn).map_err(Error::Database)?;
+
+    if tok.user_id != user.id && !user.is_admin {
+        return Err(Error::LackPermissions);
+    }
+
+    diesel::update(tokens.find(uuid))
+        .set(deleted_at.eq(Utc::now().naive_utc()))
+        .get_result::<models::Token>(&*conn)?;
+
+    Ok(())
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -89,7 +129,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for models::User {
                         }
                     }
                 }
-
             }
             1 => {
                 let tok = keys[0].to_string();

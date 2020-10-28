@@ -125,7 +125,15 @@ fn main() -> Result<()> {
         .attach(OAuth2::<Gitea>::fairing("gitea"))
         .attach(MainDatabase::fairing())
         .attach(SpaceHelmet::default())
-        .mount("/api", routes![api::get_user])
+        .mount(
+            "/api",
+            routes![
+                api::whoami,
+                api::get_user,
+                api::get_tokens,
+                api::delete_token
+            ],
+        )
         .mount("/", routes![gitea_login, gitea_callback])
         .launch();
 
