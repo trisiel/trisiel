@@ -1,4 +1,4 @@
-use crate::schema::{gitea_tokens, users};
+use crate::schema::{gitea_tokens, users, tokens};
 use chrono::NaiveDateTime;
 use serde::Serialize;
 use uuid::Uuid;
@@ -33,8 +33,7 @@ pub struct NewGiteaToken {
     pub refresh_token: String,
 }
 
-#[derive(Insertable, Queryable, Debug, Clone)]
-#[table_name = "gitea_tokens"]
+#[derive(Queryable, Debug, Clone)]
 pub struct GiteaToken {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -42,4 +41,19 @@ pub struct GiteaToken {
     pub refresh_token: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[table_name="tokens"]
+pub struct NewToken {
+    pub user_id: Uuid,
+}
+
+#[derive(Queryable, Debug, Clone, Serialize)]
+pub struct Token {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub deleted_at: Option<NaiveDateTime>,
 }
