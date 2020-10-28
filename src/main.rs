@@ -100,10 +100,10 @@ fn gitea_callback(
             user_id: user.id.clone(),
         })
         .get_result(&*conn)
-        .expect("create token information");
+        .map_err(api::Error::Database)?;
     info!("created new token for {} with id {}", user.id, tok.id);
 
-    let tok = jwt::make(user.id, tok.id).expect("to sign JWT");
+    let tok = jwt::make(user.id, tok.id).map_err(api::Error::InternalServerError)?;
 
     cookies.add_private(
         Cookie::build("token", tok.clone())

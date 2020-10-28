@@ -10,6 +10,18 @@ table! {
 }
 
 table! {
+    handlers (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        human_name -> Varchar,
+        current_version -> Varchar,
+        async_impl -> Nullable<Bool>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+table! {
     tokens (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -32,10 +44,9 @@ table! {
     }
 }
 
-joinable!(gitea_tokens -> users (user_id));
-
 allow_tables_to_appear_in_same_query!(
     gitea_tokens,
+    handlers,
     tokens,
     users,
 );
