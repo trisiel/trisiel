@@ -14,29 +14,18 @@ use rocket::{
     http::{Cookie, Cookies, SameSite},
     response::Redirect,
 };
-use rocket_contrib::{helmet::SpaceHelmet, json::Json, uuid::Uuid};
+use rocket_contrib::{helmet::SpaceHelmet};
 use rocket_oauth2::{OAuth2, TokenResponse};
 
+pub mod api;
 pub mod gitea;
 pub mod models;
 pub mod schema;
 
 #[database("main_data")]
-struct MainDatabase(PgConnection);
+pub struct MainDatabase(PgConnection);
 
 struct Gitea;
-
-#[tracing::instrument(skip(conn))]
-#[get("/user/<uuid>")]
-fn get_user(conn: MainDatabase, uuid: Uuid) -> Json<models::User> {
-    use schema::users::dsl::users;
-    let result = users
-        .find(uuid.into_inner())
-        .get_result::<models::User>(&*conn)
-        .expect("to find user");
-
-    Json(result)
-}
 
 #[tracing::instrument(skip(oauth2, cookies))]
 #[get("/login/gitea")]
@@ -69,8 +58,7 @@ fn gitea_callback(
         .load::<models::User>(&*conn)
     {
         Ok(u) => if u.len() == 0 {
-            let u = models::User {
-                id: uuid::Uuid::new_v4(),
+            let u = models::NewUser {
                 salutation: gitea_user.full_name,
                 email: gitea_user.email,
                 is_admin: gitea_user.is_admin,
@@ -83,8 +71,7 @@ fn gitea_callback(
                 .get_result(&*conn)
                 .expect("able to insert user");
 
-            let tok = models::GiteaToken {
-                id: uuid::Uuid::new_v4(),
+            let tok = models::NewGiteaToken {
                 user_id: u.id.clone(),
                 access_token: tok,
                 refresh_token: refresh,
@@ -124,7 +111,7 @@ fn main() -> Result<()> {
         .attach(OAuth2::<Gitea>::fairing("gitea"))
         .attach(MainDatabase::fairing())
         .attach(SpaceHelmet::default())
-        .mount("/api", routes![get_user])
+        .mount("/api", routes![api::get_user])
         .mount("/", routes![gitea_login, gitea_callback])
         .launch();
 
