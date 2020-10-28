@@ -8,4 +8,5 @@ in pkgs.mkShell rec {
   DATABASE_URL = "postgresql://postgres:hunter2@localhost:5432/wasmcloud";
   ROCKET_DATABASES = ''
     { main_data = { url = "${DATABASE_URL}" } }'';
+  JWT_SECRET = "hunter2";
 }
