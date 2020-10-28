@@ -70,11 +70,29 @@ impl<'a, 'r> FromRequest<'a, 'r> for models::User {
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let keys: Vec<_> = request.headers().get("authorization").collect();
+        let conn = request.guard::<MainDatabase>()?;
         match keys.len() {
-            0 => Outcome::Failure((Status::BadRequest, ())),
+            0 => {
+                let mut cookies = request.cookies();
+                let tok = cookies.get_private("token");
+                match tok {
+                    None => Outcome::Failure((Status::Unauthorized, ())),
+                    Some(cook) => {
+                        let tok = cook.value().to_string();
+
+                        match jwt::verify(tok, conn) {
+                            Err(why) => {
+                                tracing::error!("JWT verification error: {}", why);
+                                Outcome::Failure((Status::Unauthorized, ()))
+                            }
+                            Ok(user) => Outcome::Success(user),
+                        }
+                    }
+                }
+
+            }
             1 => {
                 let tok = keys[0].to_string();
-                let conn = request.guard::<MainDatabase>()?;
                 match jwt::verify(tok, conn) {
                     Err(why) => {
                         tracing::error!("JWT verification error: {}", why);
