@@ -26,7 +26,14 @@ tracing-log = "0.1"
 ureq = { version = "1", features = ["json", "charset"] }
 uuid = { version = "0.7", features = ["serde", "v4"] }
 
+rocket_upload = { path = "./lib/rocket_upload" }
+
 [dependencies.rocket_contrib]
 version = "0.4"
 default-features = false
 features = ["json", "diesel_postgres_pool", "uuid", "helmet"]
+
+[workspace]
+members = [
+  "./lib/rocket_upload"
+]

@@ -1,5 +1,6 @@
 [global.limits]
 json = 5242880
+forms = 5242880
 
 [global.oauth.gitea]
 provider = { auth_uri = "https://tulpa.dev/login/oauth/authorize", token_uri = "https://tulpa.dev/login/oauth/access_token" }
