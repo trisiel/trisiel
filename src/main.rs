@@ -12,7 +12,7 @@ extern crate tracing;
 use color_eyre::eyre::Result;
 use diesel::pg::PgConnection;
 use rocket_contrib::helmet::SpaceHelmet;
-use rocket_oauth2::{OAuth2};
+use rocket_oauth2::OAuth2;
 
 pub mod api;
 pub mod gitea;
@@ -40,6 +40,7 @@ fn main() -> Result<()> {
         .mount(
             "/api",
             routes![
+                api::handler::create,
                 api::handler::list,
                 api::handler::get,
                 api::handler::delete,

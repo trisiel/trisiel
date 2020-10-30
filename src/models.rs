@@ -1,6 +1,7 @@
-use crate::schema::{gitea_tokens, tokens, users, handlers};
+use crate::schema::{gitea_tokens, handlers, tokens, users};
 use chrono::NaiveDateTime;
 use serde::Serialize;
+use std::fmt;
 use uuid::Uuid;
 
 #[derive(Insertable)]
@@ -13,7 +14,7 @@ pub struct NewUser {
     pub tier: i32,
 }
 
-#[derive(Queryable, Serialize, Debug, Clone)]
+#[derive(Queryable, Serialize, Clone)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
@@ -23,6 +24,12 @@ pub struct User {
     pub tier: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+impl fmt::Debug for User {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.id)
+    }
 }
 
 #[derive(Insertable)]

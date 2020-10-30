@@ -1,8 +1,8 @@
-use crate::models;
 use super::{Error, Result};
+use crate::models;
 use rocket_contrib::{json::Json, uuid::Uuid};
 
-#[instrument]
+#[instrument(err)]
 #[get("/user/<uuid>")]
 pub fn get(user: models::User, uuid: Uuid) -> Result<Json<models::User>> {
     if uuid != user.id {

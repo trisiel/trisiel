@@ -1,10 +1,10 @@
-use crate::{jwt, models, schema, MainDatabase};
 use super::{Error, Result};
+use crate::{jwt, models, schema, MainDatabase};
 use chrono::prelude::*;
 use diesel::prelude::*;
 use rocket_contrib::{json::Json, uuid::Uuid};
 
-#[instrument(skip(conn))]
+#[instrument(skip(conn), err)]
 #[get("/token")]
 pub fn list(user: models::User, conn: MainDatabase) -> Result<Json<Vec<models::Token>>> {
     use schema::tokens::dsl::*;
@@ -17,7 +17,7 @@ pub fn list(user: models::User, conn: MainDatabase) -> Result<Json<Vec<models::T
     ))
 }
 
-#[instrument(skip(conn))]
+#[instrument(skip(conn), err)]
 #[delete("/token/<uuid>")]
 pub fn delete(user: models::User, conn: MainDatabase, uuid: Uuid) -> Result {
     use schema::tokens::dsl::*;
@@ -39,7 +39,7 @@ pub fn delete(user: models::User, conn: MainDatabase, uuid: Uuid) -> Result {
     Ok(())
 }
 
-#[instrument(skip(conn))]
+#[instrument(skip(conn), err)]
 #[post("/token")]
 pub fn create(user: models::User, conn: MainDatabase) -> Result<String> {
     use schema::tokens;

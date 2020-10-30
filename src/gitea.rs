@@ -39,7 +39,7 @@ pub fn login(oauth2: OAuth2<Gitea>, mut cookies: Cookies<'_>) -> Redirect {
     oauth2.get_redirect(&mut cookies, &[""]).unwrap()
 }
 
-#[instrument(skip(conn, token, cookies))]
+#[instrument(skip(conn, token, cookies), err)]
 #[get("/auth/gitea")]
 pub fn callback(
     conn: MainDatabase,
