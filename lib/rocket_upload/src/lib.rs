@@ -1,12 +1,12 @@
-use std::io::{Cursor, Read, Write};
-use std::fs::{self, File};
-use std::path::Path;
+use multipart::server::Multipart;
 use rocket::data::{self, FromDataSimple};
 use rocket::http::Status;
 use rocket::{Data, Outcome, Outcome::*, Request};
-use multipart::{server::Multipart};
+use std::fs::{self, File};
+use std::io::{Cursor, Read, Write};
+use std::path::Path;
 
-pub use mime::{Mime};
+pub use mime::Mime;
 
 #[derive(Debug)]
 pub struct TextPart {
@@ -37,7 +37,7 @@ impl Drop for FilePart {
         fs::remove_file(Path::new(&self.path)).unwrap();
     }
 }
-const TMP_PATH: &str = "/tmp/rust_upload/";
+const TMP_PATH: &str = "/tmp/wasmcloud_upload/";
 
 impl<'t> FromDataSimple for MultipartDatas {
     type Error = String;
@@ -60,9 +60,10 @@ impl<'t> FromDataSimple for MultipartDatas {
         let mut buffer = [0u8; 4096];
 
         let mut err_out: Option<Outcome<_, (Status, _), _>> = None;
+        let temp_folder = format!("{}{}/", TMP_PATH, elfs::next());
 
         mp.foreach_entry(|entry| {
-            tracing::debug!("part.headers: {:?}",entry.headers);
+            tracing::debug!("part.headers: {:?}", entry.headers);
             let mut data = entry.data;
             if entry.headers.filename == None {
                 let mut text_buffer = Vec::new();
@@ -101,11 +102,11 @@ impl<'t> FromDataSimple for MultipartDatas {
                 });
             } else {
                 let filename = entry.headers.filename.clone().unwrap();
-                if !Path::new(TMP_PATH).exists() {
-                    fs::create_dir_all(TMP_PATH).unwrap();
+                if !Path::new(&temp_folder).exists() {
+                    fs::create_dir_all(&temp_folder).unwrap();
                 }
 
-                let target_path = Path::join(Path::new(TMP_PATH), &filename);
+                let target_path = Path::join(Path::new(&temp_folder), &filename);
 
                 let mut file = match File::create(&target_path) {
                     Ok(f) => f,
@@ -149,7 +150,7 @@ impl<'t> FromDataSimple for MultipartDatas {
                 tracing::debug!("filename: {:?}", entry.headers.name);
                 files.push(FilePart {
                     name: entry.headers.name.to_string(),
-                    path: String::from(TMP_PATH) + &filename,
+                    path: format!("{}{}", temp_folder, filename),
                     filename: entry.headers.filename.clone().unwrap(),
                     content_type: entry.headers.content_type.clone(),
                 })

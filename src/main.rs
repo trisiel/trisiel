@@ -42,7 +42,7 @@ fn main() -> Result<()> {
     // evaluated and will kill the program if JWT_SECRET is not found.
     let _ = *jwt::SECRET;
     let _ = *b2::CREDS;
-    let _ = *b2::BUCKET_NAME;
+    let _ = *b2::BUCKET_ID;
 
     rocket::ignite()
         .attach(OAuth2::<Gitea>::fairing("gitea"))
@@ -57,6 +57,7 @@ fn main() -> Result<()> {
                 api::handler::delete,
                 api::handler::get_config,
                 api::handler::create_config,
+                api::handler::upload_version,
                 api::user::whoami,
                 api::user::get,
                 api::token::list,

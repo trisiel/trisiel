@@ -7,23 +7,25 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+blake3 = "0.3"
 chrono = { version = "0.4", features = ["serde"] }
 color-eyre = "0.5"
 diesel = { version = "1", features = ["postgres", "r2d2", "uuidv07", "chrono"] }
 elfs = "0"
-lazy_static = "1.4"
-jwt = "0.11"
+hex = "0"
 hmac = "0.9"
-sha2 = "0.9"
+jwt = "0.11"
+lazy_static = "1.4"
 raze = "0.2"
 rocket = "0.4"
 rocket_oauth2 = "0.4"
-serde = { version = "^1", features = ["derive"] }
 serde_json = "^1"
+serde = { version = "^1", features = ["derive"] }
+sha2 = "0.9"
 thiserror = "1"
 tracing = "0.1"
-tracing-subscriber = "0.2"
 tracing-log = "0.1"
+tracing-subscriber = "0.2"
 ureq = { version = "1", features = ["json", "charset"] }
 uuid = { version = "0.7", features = ["serde", "v4"] }
 

@@ -31,6 +31,9 @@ pub enum Error {
 
     #[error("backblaze error: {0:?}")]
     Backblaze(raze::Error),
+
+    #[error("incorrect number of files uploaded (wanted {0})")]
+    IncorrectFilecount(usize),
 }
 
 impl<'a> Responder<'a> for Error {
@@ -53,13 +56,16 @@ impl<'a> Responder<'a> for Error {
                     .sized_body(Cursor::new(format!("{}", why)))
                     .ok()
             }
-            Error::Backblaze(why) => {
-                Response::build()
-                    .header(ContentType::Plain)
-                    .status(Status::InternalServerError)
-                    .sized_body(Cursor::new(format!("b2 error: {:?}", why))).ok()
-            }
-                
+            Error::Backblaze(why) => Response::build()
+                .header(ContentType::Plain)
+                .status(Status::InternalServerError)
+                .sized_body(Cursor::new(format!("b2 error: {:?}", why)))
+                .ok(),
+            Error::IncorrectFilecount(_) => Response::build()
+                .header(ContentType::Plain)
+                .status(Status::BadRequest)
+                .sized_body(Cursor::new(format!("{}", self)))
+                .ok(),
         }
     }
 }

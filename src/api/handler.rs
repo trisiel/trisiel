@@ -1,8 +1,10 @@
 use super::{Error, Result};
-use crate::{models, schema, MainDatabase};
+use crate::{b2, models, schema, MainDatabase};
 use chrono::prelude::*;
 use diesel::prelude::*;
+use rocket::http::ContentType;
 use rocket_contrib::{json::Json, uuid::Uuid};
+use rocket_upload::MultipartDatas;
 use schema::handlers::dsl::*;
 use serde::Deserialize;
 
@@ -154,7 +156,50 @@ pub fn create_config(
         .get_result::<models::HandlerConfig>(&*conn)
         .map_err(Error::Database)?;
 
-    let _ = cfg.iter().inspect(|kv| info!(name = kv.key_name.as_str(), "config created"));
+    let _ = cfg
+        .iter()
+        .inspect(|kv| info!(name = kv.key_name.as_str(), "config created"));
 
     Ok(())
+}
+
+#[instrument(skip(conn, data, ct), err)]
+#[post("/handler/<hdl_id>/upload", data = "<data>")]
+pub fn upload_version(
+    user: models::User,
+    hdl_id: Uuid,
+    ct: &ContentType,
+    data: MultipartDatas,
+    conn: MainDatabase,
+) -> Result<Json<models::Handler>> {
+    let uuid = hdl_id.into_inner();
+
+    let handler = handlers
+        .find(uuid)
+        .get_result::<models::Handler>(&*conn)
+        .map_err(Error::Database)?;
+
+    if handler.user_id != user.id {
+        return Err(Error::LackPermissions);
+    }
+
+    if data.files.len() != 1 {
+        return Err(Error::IncorrectFilecount(1));
+    }
+
+    let file = data.files.get(0).ok_or(Error::IncorrectFilecount(1))?;
+    let ct = file
+        .content_type
+        .clone()
+        .ok_or(Error::IncorrectFilecount(1))?;
+    let upload_url = b2::upload(file.path.clone().into(), ct)?;
+
+    let handler = diesel::update(handlers.filter(id.eq(handler.id)))
+        .set(current_version.eq(Some(upload_url.clone())))
+        .get_result(&*conn)
+        .map_err(Error::Database)?;
+
+    info!(url = upload_url.as_str(), "uploaded new version of handler");
+
+    Ok(Json(handler))
 }
