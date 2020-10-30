@@ -1,4 +1,4 @@
-use crate::schema::{gitea_tokens, handlers, tokens, users};
+use crate::schema::*;
 use chrono::NaiveDateTime;
 use serde::Serialize;
 use std::fmt;
@@ -84,4 +84,21 @@ pub struct Handler {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub deleted_at: Option<NaiveDateTime>,
+}
+
+#[derive(Insertable)]
+#[table_name = "handler_config"]
+pub struct NewHandlerConfig {
+    pub key_name: String,
+    pub value_contents: String,
+    pub handler_id: Uuid,
+}
+
+#[derive(Queryable, Debug, Clone, Serialize)]
+pub struct HandlerConfig {
+    pub key_name: String,
+    pub value_contents: String,
+    pub handler_id: Uuid,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }

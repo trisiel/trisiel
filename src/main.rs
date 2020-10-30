@@ -44,6 +44,8 @@ fn main() -> Result<()> {
                 api::handler::list,
                 api::handler::get,
                 api::handler::delete,
+                api::handler::get_config,
+                api::handler::create_config,
                 api::user::whoami,
                 api::user::get,
                 api::token::list,

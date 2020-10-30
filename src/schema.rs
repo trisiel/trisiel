@@ -10,6 +10,16 @@ table! {
 }
 
 table! {
+    handler_config (key_name, handler_id) {
+        key_name -> Varchar,
+        value_contents -> Varchar,
+        handler_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+table! {
     handlers (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -45,8 +55,11 @@ table! {
     }
 }
 
+joinable!(handler_config -> handlers (handler_id));
+
 allow_tables_to_appear_in_same_query!(
     gitea_tokens,
+    handler_config,
     handlers,
     tokens,
     users,
