@@ -141,10 +141,10 @@ pub fn create_config(
 
     let cfg: Vec<models::NewHandlerConfig> = cfg
         .into_inner()
-        .iter()
+        .into_iter()
         .map(|kv| models::NewHandlerConfig {
-            key_name: kv.key.clone(),
-            value_contents: kv.value.clone(),
+            key_name: kv.key,
+            value_contents: kv.value,
             handler_id: handler.id.clone(),
         })
         .collect();
