@@ -14,10 +14,11 @@ table! {
         id -> Uuid,
         user_id -> Uuid,
         human_name -> Varchar,
-        current_version -> Varchar,
-        async_impl -> Nullable<Bool>,
+        current_version -> Nullable<Varchar>,
+        async_impl -> Bool,
         created_at -> Timestamp,
         updated_at -> Timestamp,
+        deleted_at -> Nullable<Timestamp>,
     }
 }
 

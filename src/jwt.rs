@@ -15,7 +15,7 @@ lazy_static! {
         .to_string();
 }
 
-#[tracing::instrument]
+#[instrument]
 pub fn make(user_id: uuid::Uuid, token_id: uuid::Uuid) -> Result<String> {
     let key: Hmac<Sha256> = Hmac::new_varkey(&*SECRET.as_bytes()).unwrap();
     let mut claims = BTreeMap::new();
@@ -27,7 +27,7 @@ pub fn make(user_id: uuid::Uuid, token_id: uuid::Uuid) -> Result<String> {
     Ok(token_str)
 }
 
-#[tracing::instrument(skip(token, conn))]
+#[instrument(skip(token, conn))]
 pub fn verify(token: String, conn: MainDatabase) -> Result<models::User> {
     use schema::{tokens::dsl::tokens, users::dsl::users};
     let key: Hmac<Sha256> = Hmac::new_varkey(&*SECRET.as_bytes()).unwrap();
