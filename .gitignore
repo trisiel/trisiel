@@ -8,3 +8,6 @@
 
 # Rocket
 Rocket.toml
+
+var/secret/*
+!var/secret/.gitkeep

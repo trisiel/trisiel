@@ -28,6 +28,9 @@ pub enum Error {
 
     #[error("external dependency failed: {0}")]
     ExternalDependencyFailed(Report),
+
+    #[error("backblaze error: {0:?}")]
+    Backblaze(raze::Error),
 }
 
 impl<'a> Responder<'a> for Error {
@@ -50,6 +53,13 @@ impl<'a> Responder<'a> for Error {
                     .sized_body(Cursor::new(format!("{}", why)))
                     .ok()
             }
+            Error::Backblaze(why) => {
+                Response::build()
+                    .header(ContentType::Plain)
+                    .status(Status::InternalServerError)
+                    .sized_body(Cursor::new(format!("b2 error: {:?}", why))).ok()
+            }
+                
         }
     }
 }

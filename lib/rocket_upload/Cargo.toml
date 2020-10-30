@@ -8,4 +8,6 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.4"
-multipart = "0.16.1"
+mime = "0.3"
+multipart = "0.17"
+tracing = "0.1"

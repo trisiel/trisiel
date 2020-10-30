@@ -15,6 +15,7 @@ use rocket_contrib::helmet::SpaceHelmet;
 use rocket_oauth2::OAuth2;
 
 pub mod api;
+pub mod b2;
 pub mod gitea;
 pub mod jwt;
 pub mod models;
@@ -25,6 +26,14 @@ pub struct MainDatabase(PgConnection);
 
 pub struct Gitea;
 
+// Name your user agent after your app?
+pub static APP_USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+    " +https://tulpa.dev/wasmcloud/api",
+);
+
 fn main() -> Result<()> {
     color_eyre::install()?;
     tracing_subscriber::fmt::init();
@@ -32,6 +41,8 @@ fn main() -> Result<()> {
     // XXX(Xe): This looks ineffectual, however it forces jwt::SECRET to be
     // evaluated and will kill the program if JWT_SECRET is not found.
     let _ = *jwt::SECRET;
+    let _ = *b2::CREDS;
+    let _ = *b2::BUCKET_NAME;
 
     rocket::ignite()
         .attach(OAuth2::<Gitea>::fairing("gitea"))
