@@ -1,4 +1,8 @@
-use crate::{api, jwt, models, schema, Gitea, MainDatabase};
+use crate::{
+    api::{self, Error, Result},
+    jwt, models, schema, Gitea, MainDatabase,
+};
+use color_eyre::eyre::eyre;
 use diesel::prelude::*;
 use rocket::{
     http::{Cookie, Cookies, SameSite},
@@ -46,12 +50,18 @@ pub fn callback(
     conn: MainDatabase,
     token: TokenResponse<Gitea>,
     mut cookies: Cookies<'_>,
-) -> api::Result<String> {
+) -> Result<String> {
     let tok = token.access_token().to_string();
     let refresh = token.refresh_token().unwrap().to_string();
 
     let gitea_user =
         user(tok.clone()).map_err(|why| api::Error::ExternalDependencyFailed(why.into()))?;
+
+    if !gitea_user.is_admin {
+        return Err(Error::InternalServerError(eyre!(
+            "wasmcloud is not ready for general use yet sorry"
+        )));
+    }
 
     use schema::{
         gitea_tokens, tokens,
