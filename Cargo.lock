@@ -655,10 +655,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "executor"
-version = "0.1.0"
-
-[[package]]
 name = "eyre"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3170,6 +3166,28 @@ dependencies = [
  "tracing-subscriber",
  "ureq",
  "uuid",
+]
+
+[[package]]
+name = "wasmcloud_executor"
+version = "0.1.0"
+dependencies = [
+ "color-eyre",
+ "diesel",
+ "jwt",
+ "lazy_static",
+ "rocket",
+ "rocket_contrib",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+ "tracing-log",
+ "tracing-subscriber",
+ "ureq",
+ "url 2.1.1",
+ "uuid",
+ "wasmcloud",
 ]
 
 [[package]]

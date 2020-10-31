@@ -2,6 +2,7 @@ let
   sources = import ./nix/sources.nix;
   rust = import ./nix/rust.nix { inherit sources; };
   pkgs = import sources.nixpkgs { };
+  pahi = import sources.pahi { };
 in pkgs.mkShell rec {
   buildInputs = with pkgs; with elmPackages; [
     # rust
@@ -12,6 +13,9 @@ in pkgs.mkShell rec {
     cargo-watch
     pkg-config
     openssl
+
+    # wasm
+    pahi
 
     # elm
     elm2nix

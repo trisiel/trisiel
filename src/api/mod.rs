@@ -6,7 +6,7 @@ use rocket::{
     response::Responder,
     Outcome, Response,
 };
-use std::io::Cursor;
+use std::io::{self, Cursor};
 
 pub mod handler;
 pub mod token;
@@ -34,28 +34,22 @@ pub enum Error {
 
     #[error("incorrect number of files uploaded (wanted {0})")]
     IncorrectFilecount(usize),
+
+    #[error("subcommand execution failed: {0}")]
+    Subcommand(#[from] io::Error),
+
+    #[error("this should be impossible")]
+    Impossible,
 }
 
 impl<'a> Responder<'a> for Error {
     fn respond_to(self, _: &Request) -> ::std::result::Result<Response<'a>, Status> {
         match self {
-            Error::Database(why) => Response::build()
-                .header(ContentType::Plain)
-                .status(Status::InternalServerError)
-                .sized_body(Cursor::new(format!("{}", why)))
-                .ok(),
             Error::BadOrNoAuth | Error::LackPermissions => Response::build()
                 .header(ContentType::Plain)
                 .status(Status::Unauthorized)
                 .sized_body(Cursor::new(format!("{}", self)))
                 .ok(),
-            Error::InternalServerError(why) | Error::ExternalDependencyFailed(why) => {
-                Response::build()
-                    .header(ContentType::Plain)
-                    .status(Status::InternalServerError)
-                    .sized_body(Cursor::new(format!("{}", why)))
-                    .ok()
-            }
             Error::Backblaze(why) => Response::build()
                 .header(ContentType::Plain)
                 .status(Status::InternalServerError)
@@ -64,6 +58,11 @@ impl<'a> Responder<'a> for Error {
             Error::IncorrectFilecount(_) => Response::build()
                 .header(ContentType::Plain)
                 .status(Status::BadRequest)
+                .sized_body(Cursor::new(format!("{}", self)))
+                .ok(),
+            _ => Response::build()
+                .header(ContentType::Plain)
+                .status(Status::InternalServerError)
                 .sized_body(Cursor::new(format!("{}", self)))
                 .ok(),
         }

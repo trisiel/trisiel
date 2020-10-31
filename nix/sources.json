@@ -34,5 +34,17 @@
         "type": "tarball",
         "url": "https://github.com/mozilla/nixpkgs-mozilla/archive/57c8084c7ef41366993909c20491e359bbb90f54.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "pahi": {
+        "branch": "main",
+        "description": "The next-generation Olin runtime, made with love",
+        "homepage": null,
+        "owner": "Xe",
+        "repo": "pahi",
+        "rev": "c6baae2d67a2ebef7446eb99e932fbf1d076e34e",
+        "sha256": "1yvw9w429cjkqj46g1x8d5y1p02avargnz1025dnbkkclfqb9spx",
+        "type": "tarball",
+        "url": "https://github.com/Xe/pahi/archive/c6baae2d67a2ebef7446eb99e932fbf1d076e34e.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
