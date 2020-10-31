@@ -1,4 +1,16 @@
 table! {
+    executions (id) {
+        id -> Uuid,
+        handler_id -> Uuid,
+        finished -> Bool,
+        stderr -> Nullable<Varchar>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        execution_time -> Nullable<Int4>,
+    }
+}
+
+table! {
     gitea_tokens (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -55,9 +67,8 @@ table! {
     }
 }
 
-joinable!(handler_config -> handlers (handler_id));
-
 allow_tables_to_appear_in_same_query!(
+    executions,
     gitea_tokens,
     handler_config,
     handlers,

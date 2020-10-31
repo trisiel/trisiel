@@ -3,6 +3,7 @@
 set -e
 set -x
 
+docker rm -f wasmcloud-postgres ||:
 docker \
        run \
        --name wasmcloud-postgres \
@@ -11,3 +12,5 @@ docker \
        -p 5432:5432 \
        -d \
        postgres:alpine
+sleep 2
+diesel migration run

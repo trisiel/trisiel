@@ -102,3 +102,24 @@ pub struct HandlerConfig {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
+
+#[derive(Insertable)]
+#[table_name = "executions"]
+pub struct NewExecution {
+    pub handler_id: Uuid,
+    pub finished: bool,
+    pub stderr: Option<String>,
+    pub execution_time: i32,
+}
+
+#[derive(Queryable, Debug, Clone, Serialize)]
+pub struct Execution {
+    pub id: Uuid,
+    pub handler_id: Uuid,
+    pub finished: bool,
+    pub stderr: Option<String>,
+    pub execution_time: i32,
+
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
