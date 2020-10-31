@@ -9,10 +9,13 @@ let
   src = builtins.filterSource
     (path: type: type != "directory" || builtins.baseNameOf path != "target")
     ./.;
+  pahi = pkgs.callPackage sources.pahi {
+    inherit sources;
+  };
 in {
   backend = naersk.buildPackage {
     name = "wasmcloud_backend";
     inherit src;
-    buildInputs = with pkgs; [ openssl pkg-config ];
+    buildInputs = with pkgs; [ openssl pkg-config postgresql ];
   };
 }
