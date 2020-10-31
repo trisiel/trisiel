@@ -38,14 +38,14 @@ fn user(token: String) -> std::io::Result<User> {
     Ok(user)
 }
 
-#[instrument(skip(oauth2, cookies))]
 #[get("/")]
+#[instrument(skip(oauth2, cookies))]
 pub fn login(oauth2: OAuth2<Gitea>, mut cookies: Cookies<'_>) -> Redirect {
     oauth2.get_redirect(&mut cookies, &[""]).unwrap()
 }
 
-#[instrument(skip(conn, token, cookies), err)]
 #[get("/callback")]
+#[instrument(skip(conn, token, cookies), err)]
 pub fn callback(
     conn: MainDatabase,
     token: TokenResponse<Gitea>,

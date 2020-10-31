@@ -1,5 +1,5 @@
 [package]
-name = "wasmcloud"
+name = "wasmcloud_api"
 version = "0.1.0"
 authors = ["Christine Dodrill <me@christine.website>"]
 edition = "2018"
@@ -27,6 +27,7 @@ tracing-log = "0.1"
 tracing-subscriber = "0.2"
 ureq = { version = "1", features = ["json", "charset"] }
 uuid = { version = "0.7", features = ["serde", "v4"] }
+url = "2"
 
 rocket_upload = { path = "./lib/rocket_upload" }
 
@@ -46,6 +47,5 @@ features = [ "blocking" ]
 
 [workspace]
 members = [
-  "./executor",
-  "./lib/rocket_upload"
+  "./lib/rocket_upload",
 ]

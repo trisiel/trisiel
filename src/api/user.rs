@@ -2,8 +2,8 @@ use super::{Error, Result};
 use crate::models;
 use rocket_contrib::{json::Json, uuid::Uuid};
 
-#[instrument(err)]
 #[get("/user/<uuid>")]
+#[instrument(err)]
 pub fn get(user: models::User, uuid: Uuid) -> Result<Json<models::User>> {
     if uuid != user.id {
         return Err(Error::LackPermissions);
@@ -12,8 +12,8 @@ pub fn get(user: models::User, uuid: Uuid) -> Result<Json<models::User>> {
     Ok(Json(user))
 }
 
-#[instrument]
 #[get("/whoami")]
+#[instrument]
 pub fn whoami(user: models::User) -> Json<models::User> {
     Json(user)
 }

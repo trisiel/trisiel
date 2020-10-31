@@ -3139,7 +3139,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d649a3145108d7d3fbcde896a468d1bd636791823c9921135218ad89be08307"
 
 [[package]]
-name = "wasmcloud"
+name = "wasmcloud_api"
 version = "0.1.0"
 dependencies = [
  "blake3",
@@ -3165,29 +3165,8 @@ dependencies = [
  "tracing-log",
  "tracing-subscriber",
  "ureq",
- "uuid",
-]
-
-[[package]]
-name = "wasmcloud_executor"
-version = "0.1.0"
-dependencies = [
- "color-eyre",
- "diesel",
- "jwt",
- "lazy_static",
- "rocket",
- "rocket_contrib",
- "serde",
- "serde_json",
- "thiserror",
- "tracing",
- "tracing-log",
- "tracing-subscriber",
- "ureq",
  "url 2.1.1",
  "uuid",
- "wasmcloud",
 ]
 
 [[package]]

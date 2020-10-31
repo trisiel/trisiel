@@ -1,10 +1,6 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use]
-extern crate diesel;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate rocket;
 #[macro_use]
 extern crate tracing;
@@ -17,8 +13,8 @@ use std::{
     time,
 };
 use uuid::Uuid;
-use wasmcloud::api::Error::InternalServerError;
-use wasmcloud::{
+use wasmcloud_api::api::Error::InternalServerError;
+use wasmcloud_api::{
     api::{
         Error::{Database, Impossible, Subcommand},
         Result,
@@ -65,8 +61,8 @@ fn execute(
     Ok((output, duration))
 }
 
-#[instrument(skip(conn), err)]
 #[get("/run/<handler_name>")]
+#[instrument(skip(conn), err)]
 fn schedule(handler_name: String, conn: MainDatabase) -> Result {
     fs::create_dir_all(TEMP_FOLDER)?;
     let hdl = {

@@ -7,7 +7,7 @@ use color_eyre::eyre::Result;
 use rocket_contrib::helmet::SpaceHelmet;
 use rocket_oauth2::OAuth2;
 
-use ::wasmcloud::{api, b2, gitea, jwt, Gitea, MainDatabase};
+use ::wasmcloud_api::{api, b2, gitea, jwt, Gitea, MainDatabase};
 
 fn main() -> Result<()> {
     color_eyre::install()?;

@@ -4,8 +4,8 @@ use chrono::prelude::*;
 use diesel::prelude::*;
 use rocket_contrib::{json::Json, uuid::Uuid};
 
-#[instrument(skip(conn), err)]
 #[get("/token")]
+#[instrument(skip(conn), err)]
 pub fn list(user: models::User, conn: MainDatabase) -> Result<Json<Vec<models::Token>>> {
     use schema::tokens::dsl::*;
 
@@ -17,8 +17,8 @@ pub fn list(user: models::User, conn: MainDatabase) -> Result<Json<Vec<models::T
     ))
 }
 
-#[instrument(skip(conn), err)]
 #[delete("/token/<uuid>")]
+#[instrument(skip(conn), err)]
 pub fn delete(user: models::User, conn: MainDatabase, uuid: Uuid) -> Result {
     use schema::tokens::dsl::*;
     let uuid = uuid.into_inner();
@@ -39,8 +39,8 @@ pub fn delete(user: models::User, conn: MainDatabase, uuid: Uuid) -> Result {
     Ok(())
 }
 
-#[instrument(skip(conn), err)]
 #[post("/token")]
+#[instrument(skip(conn), err)]
 pub fn create(user: models::User, conn: MainDatabase) -> Result<String> {
     use schema::tokens;
 

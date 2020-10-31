@@ -13,8 +13,8 @@ pub struct New {
     pub async_impl: bool,
 }
 
-#[instrument(skip(conn), err)]
 #[post("/handler", format = "json", data = "<input>")]
+#[instrument(skip(conn), err)]
 pub fn create(
     user: models::User,
     input: Json<New>,
@@ -41,8 +41,8 @@ pub fn create(
     Ok(Json(hdl))
 }
 
-#[instrument(skip(conn), err)]
 #[get("/handler")]
+#[instrument(skip(conn), err)]
 pub fn list(user: models::User, conn: MainDatabase) -> Result<Json<Vec<models::Handler>>> {
     Ok(Json(
         handlers
@@ -52,8 +52,8 @@ pub fn list(user: models::User, conn: MainDatabase) -> Result<Json<Vec<models::H
     ))
 }
 
-#[instrument(skip(conn), err)]
 #[get("/handler/<hdl_id>")]
+#[instrument(skip(conn), err)]
 pub fn get(user: models::User, hdl_id: Uuid, conn: MainDatabase) -> Result<Json<models::Handler>> {
     let uuid = hdl_id.into_inner();
     let handler = handlers
@@ -68,8 +68,8 @@ pub fn get(user: models::User, hdl_id: Uuid, conn: MainDatabase) -> Result<Json<
     }
 }
 
-#[instrument(skip(conn), err)]
 #[delete("/handler/<hdl_id>")]
+#[instrument(skip(conn), err)]
 pub fn delete(user: models::User, hdl_id: Uuid, conn: MainDatabase) -> Result {
     let uuid = hdl_id.into_inner();
 
@@ -89,8 +89,8 @@ pub fn delete(user: models::User, hdl_id: Uuid, conn: MainDatabase) -> Result {
     Ok(())
 }
 
-#[instrument(skip(conn), err)]
 #[get("/handler/<handler_id_str>/config")]
+#[instrument(skip(conn), err)]
 pub fn get_config(
     user: models::User,
     handler_id_str: Uuid,
@@ -124,8 +124,8 @@ pub struct Cfg {
     pub value: String,
 }
 
-#[instrument(skip(conn, cfg), err)]
 #[post("/handler/<hdl_id>/config", format = "json", data = "<cfg>")]
+#[instrument(skip(conn, cfg), err)]
 pub fn create_config(
     user: models::User,
     hdl_id: Uuid,
@@ -166,8 +166,8 @@ pub fn create_config(
     Ok(())
 }
 
-#[instrument(skip(conn, data), err)]
 #[post("/handler/<hdl_id>/upload", data = "<data>")]
+#[instrument(skip(conn, data), err)]
 pub fn upload_version(
     user: models::User,
     hdl_id: Uuid,
