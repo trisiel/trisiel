@@ -1,5 +1,5 @@
 [package]
-name = "wasmcloud-api"
+name = "wasmcloud"
 version = "0.1.0"
 authors = ["Christine Dodrill <me@christine.website>"]
 edition = "2018"

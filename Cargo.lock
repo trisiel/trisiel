@@ -3139,7 +3139,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d649a3145108d7d3fbcde896a468d1bd636791823c9921135218ad89be08307"
 
 [[package]]
-name = "wasmcloud-api"
+name = "wasmcloud"
 version = "0.1.0"
 dependencies = [
  "blake3",

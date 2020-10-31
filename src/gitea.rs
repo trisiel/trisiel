@@ -1,11 +1,11 @@
-use crate::{MainDatabase, Gitea, models, jwt, schema, api};
-use serde::{Deserialize, Serialize};
+use crate::{api, jwt, models, schema, Gitea, MainDatabase};
 use diesel::prelude::*;
 use rocket::{
     http::{Cookie, Cookies, SameSite},
     response::Redirect,
 };
 use rocket_oauth2::{OAuth2, TokenResponse};
+use serde::{Deserialize, Serialize};
 
 /// A user.
 /// https://try.gitea.io/api/swagger#model-User
@@ -22,9 +22,10 @@ pub struct User {
     pub login: String,
 }
 
-pub fn user(token: String) -> std::io::Result<User> {
+fn user(token: String) -> std::io::Result<User> {
     let resp = ureq::get("https://tulpa.dev/api/v1/user")
         .set("Authorization", &format!("bearer {}", token))
+        .set("User-Agent", crate::APP_USER_AGENT)
         .call();
     if !resp.ok() {
         todo!("error here");
@@ -34,13 +35,13 @@ pub fn user(token: String) -> std::io::Result<User> {
 }
 
 #[instrument(skip(oauth2, cookies))]
-#[get("/login/gitea")]
+#[get("/")]
 pub fn login(oauth2: OAuth2<Gitea>, mut cookies: Cookies<'_>) -> Redirect {
     oauth2.get_redirect(&mut cookies, &[""]).unwrap()
 }
 
 #[instrument(skip(conn, token, cookies), err)]
-#[get("/auth/gitea")]
+#[get("/callback")]
 pub fn callback(
     conn: MainDatabase,
     token: TokenResponse<Gitea>,

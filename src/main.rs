@@ -65,7 +65,7 @@ fn main() -> Result<()> {
                 api::token::create,
             ],
         )
-        .mount("/", routes![gitea::login, gitea::callback])
+        .mount("/login/gitea", routes![gitea::login, gitea::callback])
         .launch();
 
     Ok(())

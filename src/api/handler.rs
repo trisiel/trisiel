@@ -2,7 +2,6 @@ use super::{Error, Result};
 use crate::{b2, models, schema, MainDatabase};
 use chrono::prelude::*;
 use diesel::prelude::*;
-use rocket::http::ContentType;
 use rocket_contrib::{json::Json, uuid::Uuid};
 use rocket_upload::MultipartDatas;
 use schema::handlers::dsl::*;
@@ -33,7 +32,11 @@ pub fn create(
         .get_result::<models::Handler>(&*conn)
         .map_err(Error::Database)?;
 
-    info!("created handler {} with id {}", hdl.human_name, hdl.id);
+    info!(
+        handler.id = &hdl.id.to_string()[..],
+        handler.name = &hdl.human_name[..],
+        "created handler"
+    );
 
     Ok(Json(hdl))
 }
@@ -50,9 +53,9 @@ pub fn list(user: models::User, conn: MainDatabase) -> Result<Json<Vec<models::H
 }
 
 #[instrument(skip(conn), err)]
-#[get("/handler/<uuid>")]
-pub fn get(user: models::User, uuid: Uuid, conn: MainDatabase) -> Result<Json<models::Handler>> {
-    let uuid = uuid.into_inner();
+#[get("/handler/<hdl_id>")]
+pub fn get(user: models::User, hdl_id: Uuid, conn: MainDatabase) -> Result<Json<models::Handler>> {
+    let uuid = hdl_id.into_inner();
     let handler = handlers
         .find(uuid)
         .get_result::<models::Handler>(&*conn)
@@ -66,9 +69,9 @@ pub fn get(user: models::User, uuid: Uuid, conn: MainDatabase) -> Result<Json<mo
 }
 
 #[instrument(skip(conn), err)]
-#[delete("/handler/<uuid>")]
-pub fn delete(user: models::User, uuid: Uuid, conn: MainDatabase) -> Result {
-    let uuid = uuid.into_inner();
+#[delete("/handler/<hdl_id>")]
+pub fn delete(user: models::User, hdl_id: Uuid, conn: MainDatabase) -> Result {
+    let uuid = hdl_id.into_inner();
 
     let hdl: models::Handler = handlers
         .find(uuid.clone())
@@ -122,15 +125,15 @@ pub struct Cfg {
 }
 
 #[instrument(skip(conn, cfg), err)]
-#[post("/handler/<handler_id_str>/config", format = "json", data = "<cfg>")]
+#[post("/handler/<hdl_id>/config", format = "json", data = "<cfg>")]
 pub fn create_config(
     user: models::User,
-    handler_id_str: Uuid,
+    hdl_id: Uuid,
     cfg: Json<Vec<Cfg>>,
     conn: MainDatabase,
 ) -> Result {
     use schema::handler_config::table;
-    let uuid = handler_id_str.into_inner();
+    let uuid = hdl_id.into_inner();
 
     let handler = handlers
         .find(uuid)
@@ -163,12 +166,11 @@ pub fn create_config(
     Ok(())
 }
 
-#[instrument(skip(conn, data, ct), err)]
+#[instrument(skip(conn, data), err)]
 #[post("/handler/<hdl_id>/upload", data = "<data>")]
 pub fn upload_version(
     user: models::User,
     hdl_id: Uuid,
-    ct: &ContentType,
     data: MultipartDatas,
     conn: MainDatabase,
 ) -> Result<Json<models::Handler>> {
